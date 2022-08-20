@@ -151,6 +151,7 @@ function init() {
     attackPattern1,
     null
   );
+
   gabumon = new Digimon(
     100,
     20,
@@ -163,9 +164,12 @@ function init() {
     null
   );
 
+
   agumon.spawn();
   gabumon.spawn();
+
 }
+
 
 function draw() {
   //p5.js自建function，setup()後自動while loop per frame，除非有noLoop()停止
@@ -187,7 +191,9 @@ function draw() {
       } else if (
         currentBoard[i][j] > 2 &&
         currentBoard[i][j] == nextBoard[i][j]
+
       ) {
+
         fill(digimonPixelColors[currentBoard[i][j]]);
         noStroke();
         rect(i * unitLength, j * unitLength, unitLength, unitLength);
@@ -214,6 +220,7 @@ function draw() {
   let val = slider.value();
   frameRate(val);
 
+
   // 其中一方勝利
   if (agumon.hp <= 0) {
     $("#win-modal").modal("show");
@@ -222,6 +229,7 @@ function draw() {
     $("#win-modal").modal("show");
     // document.querySelector("#win-modal").innerHTML += <p></p>
   }
+
 }
 
 function generate() {
@@ -254,18 +262,19 @@ function generate() {
           // ******currentBoard[60][60]的右下角neighbor越過board盡頭，等於全圖左上角currentBoard
           if (
             currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] ==
-              1 &&
+            1 &&
             (x + i + columns) % columns != 0 &&
             (y + j + rows) % rows != 0
           ) {
             agumonFireNeighbors += 1;
           } else if (
             currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] ==
-              2 &&
+            2 &&
             (x + i + columns) % columns != 0 &&
             (y + j + rows) % rows != 0
           ) {
             gabumonFireNeighbors += 1;
+
           }
         }
       }
@@ -280,12 +289,12 @@ function generate() {
             }
             if (
               currentBoard[(x + aguI + columns) % columns][
-                (y + aguJ + rows) % rows
+              (y + aguJ + rows) % rows
               ] == 2
             ) {
               agumonNeighbors +=
                 currentBoard[(x + aguI + columns) % columns][
-                  (y + aguJ + rows) % rows
+                (y + aguJ + rows) % rows
                 ];
               // agumonNeighbors 用於計算阿古獸HP減少
             }
@@ -303,15 +312,16 @@ function generate() {
             }
             if (
               currentBoard[(x + gabuI + columns) % columns][
-                (y + gabuJ + rows) % rows
+              (y + gabuJ + rows) % rows
               ] == 1
             ) {
               gabumonNeighbors +=
                 currentBoard[(x + gabuI + columns) % columns][
-                  (y + gabuJ + rows) % rows
+                (y + gabuJ + rows) % rows
                 ];
               // gabumonNeighbors 用於計算加布獸HP減少
             }
+
           }
         }
       }
@@ -327,7 +337,9 @@ function generate() {
         // New life due to Reproduction
         nextBoard[x][y] = 1;
 
+
         // Rules of Life: Gabumon Fire
+
       } else if (
         currentBoard[x][y] == 2 &&
         gabumonFireNeighbors < vulnerability
@@ -479,7 +491,9 @@ function patternToArray(pattern) {
         }
       })
   );
+
   //   console.log("lines: ", lines);
+
   return lines;
 }
 
@@ -560,6 +574,7 @@ function stagePlacePattern(digimon, placeMode) {
 
   if (
     // 防止digimon走出界
+
     (placeMode === "moveUp" &&
       (topLeftCoordinate.y - moveCellDistance <= 0 ||
         topRightCoordinate.y - moveCellDistance <= 0)) ||
@@ -575,6 +590,7 @@ function stagePlacePattern(digimon, placeMode) {
   ) {
     return;
   }
+
 
   /* 防止digimon相撞 */
   let colBorBeginCdn = {}; // collisionBorderBeginCoordinate
@@ -622,7 +638,7 @@ function stagePlacePattern(digimon, placeMode) {
             i === 0 &&
             j === -1 &&
             currentBoard[(borderX + i + columns) % columns][
-              (borderY + j + rows) % rows
+            (borderY + j + rows) % rows
             ] > 2
           ) {
             return;
@@ -632,7 +648,7 @@ function stagePlacePattern(digimon, placeMode) {
             i === 0 &&
             j === 1 &&
             currentBoard[(borderX + i + columns) % columns][
-              (borderY + j + rows) % rows
+            (borderY + j + rows) % rows
             ] > 2
           ) {
             return;
@@ -642,7 +658,7 @@ function stagePlacePattern(digimon, placeMode) {
             i === -1 &&
             j === 0 &&
             currentBoard[(borderX + i + columns) % columns][
-              (borderY + j + rows) % rows
+            (borderY + j + rows) % rows
             ] > 2
           ) {
             return;
@@ -652,7 +668,7 @@ function stagePlacePattern(digimon, placeMode) {
             i === 1 &&
             j === 0 &&
             currentBoard[(borderX + i + columns) % columns][
-              (borderY + j + rows) % rows
+            (borderY + j + rows) % rows
             ] > 2
           ) {
             return;
@@ -739,6 +755,7 @@ function stagePlacePattern(digimon, placeMode) {
     }
   }
 
+
   switch (placeMode) {
     case "moveUp":
       y -= moveCellDistance;
@@ -764,6 +781,7 @@ function stagePlacePattern(digimon, placeMode) {
       //再走X軸
       currentBoard[(x + patX + columns) % columns][(y + patY + rows) % rows] =
         pat[patY][patX]; //填入mouse所指向的格
+
       //   fill(digimonPixelColors[pwdat[patY][patX]]); //填入顏色
       noStroke(); //填入邊框顏色
       //   rect(
@@ -772,6 +790,7 @@ function stagePlacePattern(digimon, placeMode) {
       //     unitLength,
       //     unitLength
       //   );
+
     }
   }
 
