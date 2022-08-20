@@ -1,80 +1,196 @@
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
-        integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
-        crossorigin="anonymous" />
-    <link rel="preconnect" href="https://fonts.gstatic.com">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
     <link
-        href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&family=Codystar&family=Julius+Sans+One&family=Major+Mono+Display&family=Megrim&family=Reggae+One&display=swap"
-        rel="stylesheet">
-    <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+      integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+      crossorigin="anonymous"
+    />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&family=Codystar&family=Julius+Sans+One&family=Major+Mono+Display&family=Megrim&family=Reggae+One&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/earlyaccess/nicomoji.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="catherine-gameoflife.css" />
+    <style>
+      .para-bar {
+        min-width: 100px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+      }
+    </style>
     <title>Catherine's Game of Life</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="wrap">
-        <div class="col-12">
+      <div class="col-12"></div>
+      <div id="canvas"></div>
+      <!--以JS運行p5.js的createCanvas再以parent method填入canvas-->
+      <div class="container">
+        <!--button board-->
+        <div
+          class="row d-flex justify-content-start align-items-center flex-wrap"
+        >
+          <button id="reset-game">Reset</button>
+          <button id="pause" class="pause-style">
+            <i id="pause-img" class="fas fa-pause"></i>
+          </button>
+          <!-- <button id="random-reset">Random</button> -->
+          <div
+            class="text-wrap para-bar"
+          >
+            <div>
+              <span>Agumon HP</span>
+              <span id="agumon-hp" class="text-success"></span>
+            </div>
+
+            <div>
+              <span>Gabumon HP</span>
+              <span id="gabumon-hp" class="text-danger"></span>
+            </div>
+          </div>
+          <!-- <div class="d-flex justify-content-end text-wrap" id="code-checker"></div> -->
         </div>
-        <div id='canvas'></div>
-        <!--以JS運行p5.js的createCanvas再以parent method填入canvas-->
-        <div class="container">
-            <!--button board-->
-            <div class="row d-flex justify-content-start align-items-center flex-wrap">
-                <button id="reset-game">Reset</button>
-                <button id="pause" class="pause-style"><i id="pause-img" class="fas fa-pause"></i></button>
-                <!-- <button id="random-reset">Random</button> -->
-                <div class="d-flex justify-content-end text-wrap" id="code-checker"></div>
-            </div>
-            <!--color theme & framerate-->
-            <div class="row d-flex justify-content-start align-items-center flex-wrap">
-                <button id="blue">blue Theme</button>
-                <button id="forest">Forest Theme</button>
-                <button id="space">space Theme</button>
-                <div id="slider"><span>Framerate<br></span></div>
-            </div>
-            <div class="row d-flex justify-content-start align-items-center flex-wrap">
-                <div class="select-flex">
-                    <!--select option changing parameter-->
-                    <p>Vulnerability<br><span>(default: 2)</span></p>
-                    <select class="form-select" id="vulnerability" aria-label="Default select example">
-                        <option value="1">1</option>
-                        <option selected value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-                <div>
-                    <p>Fertility<br><span>(default: 3)</span></p>
-                    <select class="form-select" id="fertility" aria-label="Default select example">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option selected value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            </div>
+        <!--color theme & framerate-->
+        <div
+          class="row d-flex justify-content-start align-items-center flex-wrap"
+        >
+          <button id="blue">blue Theme</button>
+          <button id="forest">Forest Theme</button>
+          <button id="space">space Theme</button>
+          <div id="slider">
+            <span>Framerate<br /></span>
+          </div>
         </div>
+        <div
+          class="row d-flex justify-content-start align-items-center flex-wrap"
+        >
+          <div class="select-flex">
+            <!--select option changing parameter-->
+            <p>Vulnerability<br /><span>(default: 2)</span></p>
+            <select
+              class="form-select"
+              id="vulnerability"
+              aria-label="Default select example"
+            >
+              <option value="1">1</option>
+              <option selected value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <p>Fertility<br /><span>(default: 3)</span></p>
+            <select
+              class="form-select"
+              id="fertility"
+              aria-label="Default select example"
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option selected value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
+    <div class="modal fade in" id="win-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" onclick = "$('.modal').hide();">
+                <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <p class="modal-title" id="exampleModalLabel"></p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <div class = "row d-flex justify-content-center text-center" id = "win-message">
+                            <p>NICE CATCH!</p>
+                        </div>
+                        <div class = "row d-flex justify-content-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class ="animate__animated animate__bounce animate__infinite animate__fast" viewBox="0 0 1024 1024">
+                                <path id="pkmn-go-menu" fill="#000000" stroke="none" stroke-width="1" d="M 512.00,359.18
+                                    C 512.00,359.18 512.00,359.18 512.00,359.18
+                                        596.40,359.18 664.81,427.60 664.82,512.00
+                                        664.82,512.00 664.82,512.00 664.82,512.00
+                                        664.82,596.40 596.40,664.81 512.00,664.82
+                                        512.00,664.82 512.00,664.82 512.00,664.82
+                                        427.60,664.82 359.19,596.40 359.18,512.00
+                                        359.18,512.00 359.18,512.00 359.18,512.00
+                                        359.18,427.60 427.60,359.18 512.00,359.18
+                                        512.00,359.18 512.00,359.18 512.00,359.18
+                                        512.00,359.18 512.00,359.18 512.00,359.18 Z
+                                    M 512.00,410.12
+                                    C 455.73,410.12 410.12,455.73 410.12,512.00
+                                        410.12,568.27 455.73,613.88 512.00,613.88
+                                        568.27,613.88 613.88,568.27 613.88,512.00
+                                        613.88,455.73 568.27,410.12 512.00,410.12
+                                        512.00,410.12 512.00,410.12 512.00,410.12 Z
+                                    M 806.16,217.84
+                                    C 884.17,295.86 928.00,401.67 928.00,512.00
+                                        928.00,622.33 884.17,728.14 806.16,806.16
+                                        728.14,884.17 622.33,928.00 512.00,928.00
+                                        401.67,928.00 295.86,884.17 217.84,806.16
+                                        139.83,728.14 96.00,622.33 96.00,512.00
+                                        96.00,401.67 139.83,295.86 217.84,217.84
+                                        295.86,139.83 401.67,96.00 512.00,96.00
+                                        622.33,96.00 728.14,139.83 806.16,217.84 Z
+                                    M 332.02,512.00
+                                    C 332.02,512.00 138.45,512.00 138.45,512.00
+                                        138.45,611.07 177.81,706.09 247.86,776.14
+                                        317.91,846.19 412.93,885.55 512.00,885.55
+                                        611.07,885.55 706.09,846.19 776.14,776.14
+                                        846.19,706.09 885.55,611.07 885.55,512.00
+                                        885.55,512.00 885.55,512.00 885.55,512.00
+                                        885.55,512.00 691.98,512.00 691.98,512.00
+                                        691.98,412.60 611.40,332.02 512.00,332.02
+                                        412.60,332.02 332.02,412.60 332.02,512.00 Z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-center" id = "next-stage-modal-div">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" id = "next-stage-btn" onclick="init()">Close and Retry</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
     <script src="catherine-digimon.js"></script>
     <!-- <script src="catherine-gameoflife.js"></script> -->
-</body>
-
+  </body>
 </html>
