@@ -1,4 +1,4 @@
-let unitLength = 30; //格子大小，數值越大則全canvas格子數越少
+let unitLength = 15; //格子大小，數值越大則全canvas格子數越少
 let columns; /* To be determined by window width*/
 let rows; /* To be determined by window height */
 let currentBoard; //今世的格子佈局，在generate中計算，在draw中填入格子及顏色
@@ -89,6 +89,7 @@ let pauseStatus = 0; //default不是pause，pauseStatus為1時同時noLoop，在
 
 function windowResized() {
   //window resize時重新setup()鋪設canvas同board
+  unitLength = height / 30;
   resizeCanvas(windowWidth, windowHeight);
   setup();
 }
@@ -132,6 +133,20 @@ function init() {
     }
   }
   pauseStatus = 0;
+
+    let agumon = new Digimon(
+      100,
+      20,
+      20,
+      "agumon",
+      "rookie",
+      agumonPattern,
+      null
+    );
+      agumon.spawn();
+      agumon.move();
+      agumonSpawned = true;
+      console.log("agumon spawned!");
 }
 
 function initRandom() {
@@ -159,7 +174,11 @@ function draw() {
         noStroke();
       } else if (currentBoard[i][j] == 2) {
         // 加布獸火球
-        ill(digimonPixelColors[2]);
+        fill(digimonPixelColors[2]);
+        noStroke();
+      } else if (currentBoard[i][j] > 2 && currentBoard[i][j] == nextBoard[i][j]) {
+        // 加布獸火球
+        fill(digimonPixelColors[currentBoard[i][j]]);
         noStroke();
       } else {
         fill(defaultTheme.boxColor); //無生命色
@@ -174,23 +193,6 @@ function draw() {
   let val = slider.value();
   frameRate(val);
 
-  let agumon = new Digimon(
-    100,
-    20,
-    20,
-    "agumon",
-    "rookie",
-    agumonPattern,
-    null
-  );
-
-  if (agumonSpawned == false) {
-    agumon.spawn();
-    agumonSpawned = true;
-    console.log('agumon spawned!')
-  }
-  
-  
 }
 
 function generate() {
@@ -208,7 +210,8 @@ function generate() {
   for (let x = 0; x < columns; x++) {
     for (let y = 0; y < rows; y++) {
       // Count all living members in the Moore neighborhood(8 boxes surrounding)
-      let neighbors = 0;
+      let agumonFireNeighbors = 0;
+      let gabumonFireNeighbors = 0;
       for (let i of [-1, 0, 1]) {
         for (let j of [-1, 0, 1]) {
           if (i === 0 && j === 0) {
@@ -220,21 +223,36 @@ function generate() {
           // i和j的for loop會加齊所有8格，視乎格仔currentBoard[x][y]是1或0影響life變化
           // 例如62%60，會出2，currentBoard[2][2]，是currentBoard[1][1]的右下角neighbor
           // ******currentBoard[60][60]的右下角neighbor越過board盡頭，等於全圖左上角currentBoard
-          neighbors +=
-            currentBoard[(x + i + columns) % columns][(y + j + rows) % rows];
+          if (currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] == 1) {
+            agumonFireNeighbors += 1
+          }else if (currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] == 2) {
+            gabumonFireNeighbors += 1
+          }
         }
       }
-      // Rules of Life
-      if (currentBoard[x][y] == 1 && neighbors < vulnerability) {
+      // Rules of Life: Agumon
+      if (currentBoard[x][y] == 1 && agumonFireNeighbors < vulnerability) {
         // Die of Loneliness
         nextBoard[x][y] = 0;
-      } else if (currentBoard[x][y] == 1 && neighbors > fertility) {
+      } else if (currentBoard[x][y] == 1 && agumonFireNeighbors > fertility) {
         // Die of Overpopulation
         nextBoard[x][y] = 0;
-      } else if (currentBoard[x][y] == 0 && neighbors == fertility) {
+      } else if (currentBoard[x][y] == 0 && agumonFireNeighbors == fertility) {
         // New life due to Reproduction
         nextBoard[x][y] = 1;
+
+      // Rules of Life: Gabumon
+      } else if (currentBoard[x][y] == 2 && gabumonFireNeighbors < vulnerability) {
+        // Die of Loneliness
+        nextBoard[x][y] = 0;
+      } else if (currentBoard[x][y] == 2 && gabumonFireNeighbors > fertility) {
+        // Die of Overpopulation
+        nextBoard[x][y] = 0;
+      } else if (currentBoard[x][y] == 0 && gabumonFireNeighbors == fertility) {
+        // New life due to Reproduction
+        nextBoard[x][y] = 2;
       } else {
+
         // Stasis不變
         nextBoard[x][y] = currentBoard[x][y];
       }
@@ -397,7 +415,7 @@ function stagePlacePattern(digimon, placeMode) {
 
   // e.g. 亞古獸放左
   if (placeMode === "placeLeft") {
-    placeLocationWidth = 3;
+    placeLocationWidth = 6;
     placeLocationHeight = 6;
     // e.g. 加布獸放右
   } else if (placeMode === "placeRight") {
@@ -413,22 +431,51 @@ function stagePlacePattern(digimon, placeMode) {
     y = digimon.currentPosition.y;
   }
 
+  console.log('before x: ', x, 'y: ', y)
+
+    let pat = patternToArray(arrPattern); //把現有pattern圖變成array
+
+    // 先清走
+    if (placeMode !== "placeLeft" || placeMode !== "placeRight") {
+      for (let patY = 0; patY < pat.length; patY++) {
+        //先走Y軸
+        for (let patX = 0; patX < pat[patY].length; patX++) {
+          //再走X軸
+          currentBoard[(x + patX + columns) % columns][
+            (y + patY + rows) % rows
+          ] = 0; //填入mouse所指向的格
+          noFill(); //填入顏色
+          stroke(150); //填入邊框顏色
+          rect(
+            (x + patY) * unitLength,
+            (y + patX) * unitLength,
+            unitLength,
+            unitLength
+          );
+        }
+      }
+      console.log('triggered clean!')
+    }
+
   switch (placeMode) {
     case "moveUp":
-      y -= unitLength;
+      y -= 2;
+      break;
     case "moveDown":
-      y += unitLength;
+      y += 2;
+      break;
     case "moveLeft":
-      x -= unitLength;
+      x -= 2;
+      break;
     case "moveRight":
-      x += unitLength;
+      x += 2;
+      break;
     default:
       break;
   }
 
-  console.log("x: ", x, "y: ", y, "placeMode: ", placeMode);
+  console.log('digimon: ', digimon, 'placeMode: ', placeMode);
 
-  let pat = patternToArray(arrPattern); //把現有pattern圖變成array
   for (let patY = 0; patY < pat.length; patY++) {
     //先走Y軸
     for (let patX = 0; patX < pat[patY].length; patX++) {
@@ -522,64 +569,63 @@ function stagePlacePattern(digimon, placeMode) {
 
 
 
-// let agumon = ` 
-// -------bbbb-bb--------
-// ------booyybobbb------
-// -----boobboyoooob-----
-// ----boobg-boyyyyybb---
-// ----boobgbboooyyyyobb-
-// ---bOoob-bboooooooyyob
-// ---bOooybboooooooboobb
-// ---bOoooyyyooooooOooOb
-// ---bOoooobooooooooooob
-// ----bOoooOb-bbooooo-b-
-// ----bOooooooob-bbb-bb-
-// -----booooooooooooob--
-// -----bOoooooooobbbb---
-// -----boOOoooOOb-------
-// ----booOooooOb--------
-// ----booOOOoobOb-------
-// ---bOoOOOooobobbb-----
-// ---booobbOooobooobb---
-// -bbOooyyybboobOo---b--
-// bobOOoo----bObO-b-b-b-
-// bOObO--b-b-boobb--b-b-
-// -bOObb-b-bbOOob-bbbb--
-// --bbbObbbbOOObb-------
-// ---bOOOooobbOoobb-----
-// ---bOO--o-o-bOO--b----
-// ----bbbbbbbbbbbbb-----
-// `;
+let agumonPattern = ` 
+-------xxxx-xx--------
+------xYYyyxYxxx------
+-----xYYxxYyYYYYx-----
+----xYYxgwxYyyyyyxx---
+----xYYxgxxYYYyyyyYxx-
+---xoYYxwxxYYYYYYYyyYx
+---xoYYyxxYYYYYYYxYYxx
+---xoYYYyyyYYYYYYoYYox
+---xoYYYYxYYYYYYYYYYYx
+----xoYYYoxwxxYYYYYwx-
+----xoYYYYYYYxwxxxwxx-
+-----xYYYYYYYYYYYYYx--
+-----xoYYYYYYYYxxxx---
+-----xYooYYYoox-------
+----xYYoYYYYox--------
+----xYYoooYYxox-------
+---xoYoooYYYxYxxx-----
+---xYYYxxoYYYxYYYxx---
+-xxoYYyyyxxYYxoYwwwx--
+xYxooYYwwwwxoxowxwxwx-
+xooxowwxwxwxYYxxwwxwx-
+-xooxxwxwxxooYxwxxxx--
+--xxxoxxxxoooxx-------
+---xoooYYYxxoYYxx-----
+---xoowwYwYwxoowwx----
+----xxxxxxxxxxxxx-----
+`;
 
-// let gabumon = `
-// --b------------------------
-// --bb----bbb----------------
-// --byb--bBBbb---------------
-// ---byb-bib------bbb--------
-// ---byybib-----bbiBBbb------
-// ----byybbbb--biibbbbbb-----
-// ----bybBBBBbbibb-----------
-// ---bibBiiiiiBb-------------
-// --bBBBiBbbBBiBb------------
-// -bbbBiib-ObiiiBb-----------
-// bBBiiibb-coBBiiBBb---------
-// biiiiiBiiBiiiBBiBb---------
-// biiiiiBBiBBiiiiiBb---------
-// -bbbbb-b-b-iiiiBiBb--------
-// -bbbbb-b-b-iiiiBiBb--------
-// --byyybybybbiiiiiBb--bbbbb-
-// ---bbyyyyyybBBibBiibbyyyybb
-// -----bbbbyyybiibiiBiyyyyb--
-// -----bBbdLLybiiibBBibyyb---
-// ----bibbLpLbiiBBbiisbyb----
-// --bbBbybpLpbiiiibbsbbyb----
-// -biiBbyybpbBBBiibybybb-----
-// bsbiibyyyb-iiiiibyyyb------
-// bbsibbbbybsbiiiibyyb-------
-// -bbb-b-yybbbsbsbyyyyb------
-// ---bbbbbbbbbb-b--b-yb------
-// ------------bbbbbbbb-------
-// `;
+let gabumonPattern = `
+--x------------------------
+--xx----xxx----------------
+--xyx--xBBxx---------------
+---xyx-xbx------xxx--------
+---xyyxbx-----xxbBBxx------
+----xyyxxxx--xbbxxxxxx-----
+----xyxBBBBxxbxx-----------
+---xbxBbbbbbBx-------------
+--xBBBbBxxBBbBx------------
+-xxxBbbxwoxbbbBx-----------
+xBBbbbxxRoBBbbBBx----------
+xbbbbbBbbBbbbBBbBx---------
+xbbbbbBBbBBbbbbbBx---------
+-xxxxxxwxwxwbbbbBbBx-------
+--xyyyxyxyxxbbbbbBx--xxxxx-
+---xxyyyyyyxBBbxBbbxxyyyyxx
+-----xxxxyyyxbbxbbBxyyyyx--
+-----xBxgttyxbbbxBBbxyyx---
+----xbxxtptxbbBBxbbRxyx----
+--xxBxyxptpxbbbbxxRxxyx----
+-xbbBxyyxpxBBBbbxyxyxx-----
+xRxbbxyyybwbbbbbxyyyx------
+xxRbxxxxyxRxiiiixyyx-------
+-xxxwxwyyxxxRxRxyyyyx------
+---xxxxxxxxxxwxwwxwyx------
+------------xxxxxxxx-------
+`;
 
 
 class Digimon {
@@ -606,30 +652,34 @@ class Digimon {
     }
 
     move(){
-        document.addEventListener('keydown', (event)=>{
-            switch (event.key) {
-                case 'w':
-                    // up
-                    stagePlacePattern(this, 'moveUp');
-                    break;
-                case 's':
-                    // down
-                    break;
+        if(this.name === 'agumon'){
+        document.addEventListener("keydown", (event) => {
+          switch (event.key) {
+            case "w":
+              // up
+              stagePlacePattern(this, "moveUp");
+              break;
+            case "s":
+              // down
+              stagePlacePattern(this, "moveDown");
+              break;
+            case "a":
+              // left
+              stagePlacePattern(this, "moveLeft");
+              break;
+            case "d":
+              // right
+              stagePlacePattern(this, "moveRight");
+              break;
+            default:
+              break;
+          }
+        });
+        }else if(this.name === 'gabumon'){
 
-                default:
-                    break;
-            }
-        })
+        }
+
     }
 
-    attack(enemy){
-
-    }
 
 }
-
-let agumonPattern = `
----xxx---
----xxx---
----xxx---
-`

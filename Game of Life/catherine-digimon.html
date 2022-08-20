@@ -1,0 +1,80 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+        integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+        crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&family=Codystar&family=Julius+Sans+One&family=Major+Mono+Display&family=Megrim&family=Reggae+One&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
+    <link rel="stylesheet" href="catherine-gameoflife.css" />
+    <title>Catherine's Game of Life</title>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="col-12">
+        </div>
+        <div id='canvas'></div>
+        <!--以JS運行p5.js的createCanvas再以parent method填入canvas-->
+        <div class="container">
+            <!--button board-->
+            <div class="row d-flex justify-content-start align-items-center flex-wrap">
+                <button id="reset-game">Reset</button>
+                <button id="pause" class="pause-style"><i id="pause-img" class="fas fa-pause"></i></button>
+                <button id="random-reset">Random</button>
+                <div class="d-flex justify-content-end text-wrap" id="code-checker"></div>
+            </div>
+            <!--color theme & framerate-->
+            <div class="row d-flex justify-content-start align-items-center flex-wrap">
+                <button id="blue">blue Theme</button>
+                <button id="forest">Forest Theme</button>
+                <button id="space">space Theme</button>
+                <div id="slider"><span>Framerate<br></span></div>
+            </div>
+            <div class="row d-flex justify-content-start align-items-center flex-wrap">
+                <div class="select-flex">
+                    <!--select option changing parameter-->
+                    <p>Vulnerability<br><span>(default: 2)</span></p>
+                    <select class="form-select" id="vulnerability" aria-label="Default select example">
+                        <option value="1">1</option>
+                        <option selected value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div>
+                    <p>Fertility<br><span>(default: 3)</span></p>
+                    <select class="form-select" id="fertility" aria-label="Default select example">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option selected value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+    <script src="catherine-digimon.js"></script>
+    <!-- <script src="catherine-gameoflife.js"></script> -->
+</body>
+
+</html>

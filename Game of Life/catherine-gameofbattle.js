@@ -1,21 +1,29 @@
-let enemySpectrum = [
-    "", //0 blank
-    "", //1 blank
-    "#000000", //2 black b
-    "#76cccd", //3 light blue i
-    "#0f97ff", //4 strong blue B
-    "#50ad51", //5 green g
-    "#e1e154", //6 yellow Y
-    "#f99542", //7 orange o
-    "#d4722d", //8 strong orange O
-    "#69659d", //9 purple p
-    "#8d4c1c", //10 coffee color c
-    "#315865", //11 deep green d
-    "#8b3c38", //12 strong brown s
-    "#9fcbda", //13 lake blue L
-    "#FF0000", //14 red r
-    "#000000", //15 strong white w
-]
+let unitLength = 10; //格子大小，數值越大則全canvas格子數越少
+let columns; /* To be determined by window width*/
+let rows; /* To be determined by window height */
+let currentBoard;
+let nextBoard;
+let slider;
+let canvasColor = "#222222";
+let boxClickColor = "#ff5959";
+let enemyStrokeColor = "#49160b";
+let digimonPixelColors = [
+    "", // 0 blank, no life
+    "", // 1 agumon fire
+    "", // 2 gabumon fire
+    "#000000", // 3 black x
+    "#FDFF00", // 4 light yellow y
+    "#FEC100", // 5 yellow Y
+    "#E26B09", // 6 orange o
+    "#e1e154", // 7 yellow Y
+    "#00B050", // 8 green g
+    "#B8CDE3", // 9 azure blue b
+    "#376092", // 10 navy blue B
+    "#90CEDB", // 11 teal t
+    "#7F63A2", // 12 purple p
+    "#913B39", // 13 wine red R
+    "#000000", // 14 strong white w
+];
 
 function patternToArray(pattern) {
     let lines = pattern.split('\n');//每行成為一個array element
@@ -64,97 +72,66 @@ function patternToArray(pattern) {
     return lines;
 }
 
+let achimsp = `
+......................................O
+......................................OO........OO
+.......................................OO.......OO
+..........OO..OO..................OO..OO
+`;
+
 let agumon = ` 
--------bbbb-bb--------
-------booyybobbb------
------boobboyoooob-----
-----boobg-boyyyyybb---
-----boobgbboooyyyyobb-
----bOoob-bboooooooyyob
----bOooybboooooooboobb
----bOoooyyyooooooOooOb
----bOoooobooooooooooob
-----bOoooOb-bbooooo-b-
-----bOooooooob-bbb-bb-
------booooooooooooob--
------bOoooooooobbbb---
------boOOoooOOb-------
-----booOooooOb--------
-----booOOOoobOb-------
----bOoOOOooobobbb-----
----booobbOooobooobb---
--bbOooyyybboobOo---b--
-bobOOoo----bObO-b-b-b-
-bOObO--b-b-boobb--b-b-
--bOObb-b-bbOOob-bbbb--
---bbbObbbbOOObb-------
----bOOOooobbOoobb-----
----bOO--o-o-bOO--b----
-----bbbbbbbbbbbbb-----
+-------xxxx-xx--------
+------xYYyyxYxxx------
+-----xYYxxYyYYYYx-----
+----xYYxgwxYyyyyyxx---
+----xYYxgxxYYYyyyyYxx-
+---xoYYxwxxYYYYYYYyyYx
+---xoYYyxxYYYYYYYbYYbb
+---xoYYYyyyYYYYYYoYYob
+---xoYYYYbYYYYYYYYYYYb
+----xoYYYoxwxxYYYYYwx-
+----xoYYYYYYYxwxxxwxx-
+-----xYYYYYYYYYYYYYx--
+-----xoYYYYYYYYxxxx---
+-----xYooYYYoox-------
+----xYYoYYYYox--------
+----xYYoooYYxox-------
+---xoYoooYYYxYxxx-----
+---xYYYbboYYYxYYYxx---
+-xxoYYyyyxxYYxoYwwwx--
+xYxooYYwwwwxoxowxwxwx-
+xooxowwxwxwxYYxxwwxwx-
+-xooxxwxwxxooYxwxxxx--
+--xxxoxxxxoooxx-------
+---xoooYYYxxoYYxx-----
+---xoowwYwYwxoowwx----
+----xxxxxxxxxxxxx-----
 `
 
 let gabumon = `
---b------------------------
---bb----bbb----------------
---byb--bBBbb---------------
----byb-bib------bbb--------
----byybib-----bbiBBbb------
-----byybbbb--biibbbbbb-----
-----bybBBBBbbibb-----------
----bibBiiiiiBb-------------
---bBBBiBbbBBiBb------------
--bbbBiib-ObiiiBb-----------
-bBBiiibb-coBBiiBBb---------
-biiiiiBiiBiiiBBiBb---------
-biiiiiBBiBBiiiiiBb---------
--bbbbb-b-b-iiiiBiBb--------
--bbbbb-b-b-iiiiBiBb--------
---byyybybybbiiiiiBb--bbbbb-
----bbyyyyyybBBibBiibbyyyybb
------bbbbyyybiibiiBiyyyyb--
------bBbdLLybiiibBBibyyb---
-----bibbLpLbiiBBbiisbyb----
---bbBbybpLpbiiiibbsbbyb----
--biiBbyybpbBBBiibybybb-----
-bsbiibyyyb-iiiiibyyyb------
-bbsibbbbybsbiiiibyyb-------
--bbb-b-yybbbsbsbyyyyb------
----bbbbbbbbbb-b--b-yb------
-------------bbbbbbbb-------
-`
-
-let fball = `
---------O--O------------
------rrr----------------
----rrOOOr--rrrr---------
---rOOOrrrrrOOOOr--------
--rOOOOOOwrOOOrrr--------
--rOOwwwwwwwwOOOOr-------
-rOOOwwwwwwwwwwOOOOO-----
-rOOwwwwwwwwwwwwwOwwwOw--
--rOwwwwwwwwwwwwwwOOOOOOO
-rOOOwwwwOwwwwOOOOrrrr---
-rOOOOwwOOOOOOOrOr-------
--rrOOOwOOrOOOOOr--------
---rOOOOOOOrOOOr---------
----rOOOOrrOrrrrr--------
-----rrrr--r-------------
-`
-
-let bfball = `
---------i--i------------
------BBB----------------
----BBiiiB--BBBB---------
---BiiiBBBBBiiiiB--------
--BiiiiiiwBiiiBBB--------
--BiiwwwwwwwwiiiiB-------
-Biiiwwwwwwwwwwiiiii-----
-Biiwwwwwwwwwwwwwiwwwiw--
--Biwwwwwwwwwwwwwwiiiiiii
-BiiiwwwwiwwwwiiiiBBBB---
-BiiiiwwiiiiiiiBiB-------
--BBiiiwiiBiiiiiB--------
---BiiiiiiiBiiiB---------
----BiiiiBBiBBBBB--------
-----BBBB--B-------------
-`
+--x------------------------
+--xx----xxx----------------
+--xyx--xBBxx---------------
+---xyx-xbx------xxx--------
+---xyyxbx-----xxbBBxx------
+----xyyxxxx--xbbxxxxxx-----
+----xyxBBBBxxbxx-----------
+---xbxBbbbbbBx-------------
+--xBBBbBxxBBbBx------------
+-xxxBbbxwoxbbbBx-----------
+xBBbbbxxRoBBbbBBx----------
+xbbbbbBbbBbbbBBbBx---------
+xbbbbbBBbBBbbbbbBx---------
+-xxxxxxwxwxwbbbbBbBx-------
+--xyyyxyxyxxbbbbbBx--xxxxx-
+---xxyyyyyyxBBbxBbbxxyyyyxx
+-----xxxxyyyxbbxbbBxyyyyx--
+-----xBxgttyxbbbxBBbxyyx---
+----xbxxtptxbbBBxbbRxyx----
+--xxBxyxptpxbbbbxxRxxyx----
+-xbbBxyyxpxBBBbbxyxyxx-----
+xRxbbxyyybwbbbbbxyyyx------
+xxRbxxxxyxRxiiiixyyx-------
+-xxxwxwyyxxxRxRxyyyyx------
+---xxxxxxxxxxwxwwxwyx------
+------------xxxxxxxx-------  `

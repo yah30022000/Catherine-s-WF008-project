@@ -1,4 +1,4 @@
-let unitLength  =  30; //格子大小，數值越大則全canvas格子數越少
+let unitLength  =  10; //格子大小，數值越大則全canvas格子數越少
 let columns; /* To be determined by window width*/
 let rows; /* To be determined by window height */
 let currentBoard; //今世的格子佈局，在generate中計算，在draw中填入格子及顏色
