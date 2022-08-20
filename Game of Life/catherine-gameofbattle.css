@@ -1,13 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap');
-
-#header-container {
-    background-color: black;
-}
-
-
-
 header {
-    font-family: 'Shadows Into Light', cursive;
+    font-family: 'Codystar', 'Reggae One', cursive;
     font-size: 80px;
     font-weight: bold;
 }
@@ -109,22 +101,6 @@ button:hover {
 
 button:hover::after {
     opacity: 1;
-}
-
-#blue {
-    background: dodgerblue;
-    color: floralwhite;
-}
-
-#forest {
-    background: #2C7162;
-    color: floralwhite;
-}
-
-#space {
-    background: #212c58;
-    color: floralwhite;
-    font-weight: bold;
 }
 
 #slider {
