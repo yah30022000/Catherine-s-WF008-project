@@ -164,3 +164,15 @@ button:hover::after {
     from {color: #AED6F1; filter: drop-shadow(0px 0px 3px #0099ff);}
     to { color: #ABEBC6; filter: drop-shadow(0px 0px 3px #00ff6a);}
 } */
+
+  "#000000", // 3 black x
+  "#FDFF00", // 4 light yellow y
+  "#FEC100", // 5 yellow Y
+  "#E26B09", // 6 orange o
+  "#00B050", // 7 green g
+  "#B8CDE3", // 8 azure blue b
+  "#376092", // 9 navy blue B
+  "#90CEDB", // 10 teal t
+  "#7F63A2", // 11 purple p
+  "#913B39", // 12 wine red R
+  "#FFFFFF", // 13 strong white w
