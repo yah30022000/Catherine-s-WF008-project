@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap');
 
 * {
-  font-family: 'DynaPuff', cursive;
+  font-family: 'Black Ops One', cursive;
 }
 
 html {
@@ -52,12 +52,12 @@ body:after {
 
 .button {
   background-color: white;
-  color: black;
-  border: 2px solid #008CBA;
+  color: #373737;
+  border: 2px solid #0463ca;
 }
 
 .button:hover {
-  background-color: #008CBA;
+  background-color: #06b6ff;
   color: white;
 }
 
