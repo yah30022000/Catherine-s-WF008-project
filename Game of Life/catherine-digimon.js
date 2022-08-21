@@ -151,7 +151,6 @@ function init() {
     attackPattern1,
     null
   );
-
   gabumon = new Digimon(
     100,
     20,
@@ -164,12 +163,9 @@ function init() {
     null
   );
 
-
   agumon.spawn();
   gabumon.spawn();
-
 }
-
 
 function draw() {
   //p5.js自建function，setup()後自動while loop per frame，除非有noLoop()停止
@@ -220,7 +216,6 @@ function draw() {
   let val = slider.value();
   frameRate(val);
 
-
   // 其中一方勝利
   if (agumon.hp <= 0) {
     $("#win-modal").modal("show");
@@ -229,7 +224,6 @@ function draw() {
     $("#win-modal").modal("show");
     // document.querySelector("#win-modal").innerHTML += <p></p>
   }
-
 }
 
 function generate() {
@@ -337,9 +331,7 @@ function generate() {
         // New life due to Reproduction
         nextBoard[x][y] = 1;
 
-
         // Rules of Life: Gabumon Fire
-
       } else if (
         currentBoard[x][y] == 2 &&
         gabumonFireNeighbors < vulnerability
@@ -574,7 +566,6 @@ function stagePlacePattern(digimon, placeMode) {
 
   if (
     // 防止digimon走出界
-
     (placeMode === "moveUp" &&
       (topLeftCoordinate.y - moveCellDistance <= 0 ||
         topRightCoordinate.y - moveCellDistance <= 0)) ||
@@ -590,7 +581,6 @@ function stagePlacePattern(digimon, placeMode) {
   ) {
     return;
   }
-
 
   /* 防止digimon相撞 */
   let colBorBeginCdn = {}; // collisionBorderBeginCoordinate
@@ -781,7 +771,6 @@ function stagePlacePattern(digimon, placeMode) {
       //再走X軸
       currentBoard[(x + patX + columns) % columns][(y + patY + rows) % rows] =
         pat[patY][patX]; //填入mouse所指向的格
-
       //   fill(digimonPixelColors[pwdat[patY][patX]]); //填入顏色
       noStroke(); //填入邊框顏色
       //   rect(
@@ -790,7 +779,6 @@ function stagePlacePattern(digimon, placeMode) {
       //     unitLength,
       //     unitLength
       //   );
-
     }
   }
 
