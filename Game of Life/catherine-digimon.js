@@ -67,7 +67,7 @@ let digimonPixelColors = [
   "", // 0 blank, no life
   "#f7a427", // 1 agumon fire
   "#54c0ff", // 2 gabumon fire
-  "#000000", // 3 black x
+  "#000000", // 3 black for agumon x
   "#FDFF00", // 4 light yellow y
   "#FEC100", // 5 yellow Y
   "#E26B09", // 6 orange o
@@ -78,14 +78,21 @@ let digimonPixelColors = [
   "#7F63A2", // 11 purple p
   "#913B39", // 12 wine red R
   "#FFFFFF", // 13 strong white w
+  "#000000", // 14 black for gabumon X
 ];
-
-let agumonSpawned = false;
 
 let defaultTheme = blueTheme; //配合按鍵轉color theme，一併改為另一種顏色
 
 let pause = document.querySelector("#pause");
 let pauseStatus = 0; //default不是pause，pauseStatus為1時同時noLoop，在mouseRelease()定義
+
+let agumonHpDisplay = document.querySelector("#agumon-hp");
+let gabumonHpDisplay = document.querySelector("#gabumon-hp");
+let agumonNeighbors = 0;
+let gabumonNeighbors = 0;
+
+let agumon;
+let gabumon;
 
 function windowResized() {
   //window resize時重新setup()鋪設canvas同board
@@ -134,31 +141,30 @@ function init() {
   }
   pauseStatus = 0;
 
-    let agumon = new Digimon(
-      100,
-      20,
-      20,
-      "agumon",
-      "rookie",
-      agumonPattern,
-      null
-    );
-      agumon.spawn();
-      agumon.move();
-      agumonSpawned = true;
-      console.log("agumon spawned!");
-}
+  agumon = new Digimon(
+    100,
+    20,
+    20,
+    "agumon",
+    "rookie",
+    agumonPattern,
+    attackPattern1,
+    null
+  );
+  gabumon = new Digimon(
+    100,
+    20,
+    20,
+    "gabumon",
+    "rookie",
+    gabumonPattern,
+    attackPattern1.replaceAll("#", "@"),
+    // attackPattern1.replaceAll("#", "@").split("\n").map((item)=>item.split("").reverse().join("")).join("\n"),
+    null
+  );
 
-function initRandom() {
-  //initialize with random state of currentBoard
-  for (let i = 0; i < columns; i++) {
-    for (let j = 0; j < rows; j++) {
-      currentBoard[i][j] = random() > 0.8 ? 1 : 0;
-      //each box if get random number larger than 0.8, value will be 1 (have life)
-      //so 20% have life, 80% no life
-      nextBoard[i][j] = 0;
-    }
-  }
+  agumon.spawn();
+  gabumon.spawn();
 }
 
 function draw() {
@@ -172,27 +178,50 @@ function draw() {
         // 亞古獸火球
         fill(digimonPixelColors[1]);
         noStroke();
+        rect(i * unitLength, j * unitLength, unitLength, unitLength);
       } else if (currentBoard[i][j] == 2) {
         // 加布獸火球
         fill(digimonPixelColors[2]);
         noStroke();
-      } else if (currentBoard[i][j] > 2 && currentBoard[i][j] == nextBoard[i][j]) {
-        // 加布獸火球
+        rect(i * unitLength, j * unitLength, unitLength, unitLength);
+      } else if (
+        currentBoard[i][j] > 2 &&
+        currentBoard[i][j] == nextBoard[i][j]
+      ) {
         fill(digimonPixelColors[currentBoard[i][j]]);
         noStroke();
+        rect(i * unitLength, j * unitLength, unitLength, unitLength);
       } else {
         fill(defaultTheme.boxColor); //無生命色
-        stroke(defaultTheme.emptyStrokeColor);
+        // stroke(defaultTheme.emptyStrokeColor);
+        noStroke();
       }
       //rect描繪正方形／長方形
-      rect(i * unitLength, j * unitLength, unitLength, unitLength);
+
       //for loop出全圖方格，佈滿整board
     }
   }
 
+  agumon.calculateInjure();
+  gabumon.calculateInjure();
+
+  agumonNeighbors = 0;
+  gabumonNeighbors = 0;
+
+  agumonHpDisplay.innerHTML = `${agumon.hp}`;
+  gabumonHpDisplay.innerHTML = `${gabumon.hp}`;
+
   let val = slider.value();
   frameRate(val);
 
+  // 其中一方勝利
+  if (agumon.hp <= 0) {
+    $("#win-modal").modal("show");
+    // document.querySelector("#win-modal").innerHTML += <p></p>
+  } else if (gabumon.hp <= 0) {
+    $("#win-modal").modal("show");
+    // document.querySelector("#win-modal").innerHTML += <p></p>
+  }
 }
 
 function generate() {
@@ -223,14 +252,71 @@ function generate() {
           // i和j的for loop會加齊所有8格，視乎格仔currentBoard[x][y]是1或0影響life變化
           // 例如62%60，會出2，currentBoard[2][2]，是currentBoard[1][1]的右下角neighbor
           // ******currentBoard[60][60]的右下角neighbor越過board盡頭，等於全圖左上角currentBoard
-          if (currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] == 1) {
-            agumonFireNeighbors += 1
-          }else if (currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] == 2) {
-            gabumonFireNeighbors += 1
+          if (
+            currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] ==
+              1 &&
+            (x + i + columns) % columns != 0 &&
+            (y + j + rows) % rows != 0
+          ) {
+            agumonFireNeighbors += 1;
+          } else if (
+            currentBoard[(x + i + columns) % columns][(y + j + rows) % rows] ==
+              2 &&
+            (x + i + columns) % columns != 0 &&
+            (y + j + rows) % rows != 0
+          ) {
+            gabumonFireNeighbors += 1;
           }
         }
       }
-      // Rules of Life: Agumon
+
+      // Rules of Life: Agumon HP
+      // 檢查亞古獸的外皮 (黑色邊) 3
+      if (currentBoard[x][y] == 3) {
+        for (let aguI of [-1, 0, 1]) {
+          for (let aguJ of [-1, 0, 1]) {
+            if (aguI === 0 && aguJ === 0) {
+              continue;
+            }
+            if (
+              currentBoard[(x + aguI + columns) % columns][
+                (y + aguJ + rows) % rows
+              ] == 2
+            ) {
+              agumonNeighbors +=
+                currentBoard[(x + aguI + columns) % columns][
+                  (y + aguJ + rows) % rows
+                ];
+              // agumonNeighbors 用於計算阿古獸HP減少
+            }
+          }
+        }
+      }
+
+      // Rules of Life: Gabumon HP
+      // 檢查加布獸的外皮 (黑色邊) 14
+      if (currentBoard[x][y] == 14) {
+        for (let gabuI of [-1, 0, 1]) {
+          for (let gabuJ of [-1, 0, 1]) {
+            if (gabuI === 0 && gabuJ === 0) {
+              continue;
+            }
+            if (
+              currentBoard[(x + gabuI + columns) % columns][
+                (y + gabuJ + rows) % rows
+              ] == 1
+            ) {
+              gabumonNeighbors +=
+                currentBoard[(x + gabuI + columns) % columns][
+                  (y + gabuJ + rows) % rows
+                ];
+              // gabumonNeighbors 用於計算加布獸HP減少
+            }
+          }
+        }
+      }
+
+      // Rules of Life: Agumon Fire
       if (currentBoard[x][y] == 1 && agumonFireNeighbors < vulnerability) {
         // Die of Loneliness
         nextBoard[x][y] = 0;
@@ -241,8 +327,11 @@ function generate() {
         // New life due to Reproduction
         nextBoard[x][y] = 1;
 
-      // Rules of Life: Gabumon
-      } else if (currentBoard[x][y] == 2 && gabumonFireNeighbors < vulnerability) {
+        // Rules of Life: Gabumon Fire
+      } else if (
+        currentBoard[x][y] == 2 &&
+        gabumonFireNeighbors < vulnerability
+      ) {
         // Die of Loneliness
         nextBoard[x][y] = 0;
       } else if (currentBoard[x][y] == 2 && gabumonFireNeighbors > fertility) {
@@ -252,7 +341,6 @@ function generate() {
         // New life due to Reproduction
         nextBoard[x][y] = 2;
       } else {
-
         // Stasis不變
         nextBoard[x][y] = currentBoard[x][y];
       }
@@ -263,35 +351,17 @@ function generate() {
   [currentBoard, nextBoard] = [nextBoard, currentBoard];
 }
 
-function mousePressed() {
-  //When mouse is pressed
-  if (!mouseX > unitLength * columns || !mouseY > unitLength * rows) {
-    noLoop();
-  }
-
-    mouseDragged();
-}
-
-function mouseReleased() {
-  //When mouse is released
-  if (pauseStatus == 0) {
-    loop();
-  } else {
-    noLoop();
-  }
-}
-
 document
   .querySelector("#reset-game") //reset button
   .addEventListener("click", function () {
     init();
   });
 
-document
-  .querySelector("#random-reset") //random button
-  .addEventListener("click", function () {
-    initRandom();
-  });
+// document
+//   .querySelector("#random-reset") //random button
+//   .addEventListener("click", function () {
+//     initRandom();
+//   });
 
 pause.addEventListener("click", function () {
   //pause button
@@ -326,21 +396,39 @@ document.querySelector("#space").addEventListener("click", function () {
   defaultTheme = spaceTheme; //change to space theme
 });
 
-function mouseDragged() {
-  // When mouse is dragged
-  const x = Math.floor(mouseX / unitLength);
-  const y = Math.floor(mouseY / unitLength);
+// function mousePressed() {
+//   //When mouse is pressed
+//   if (!mouseX > unitLength * columns || !mouseY > unitLength * rows) {
+//     noLoop();
+//   }
 
-  //If the mouse coordinate is outside the board
-  if (mouseX > unitLength * columns || mouseY > unitLength * rows) {
-    return;
-  }
-    //即正常拖拉mouse放box
-    currentBoard[x][y] = 1;
-    fill(defaultTheme.boxClickColor);
-    stroke(defaultTheme.strokeColor);
-    rect(x * unitLength, y * unitLength, unitLength, unitLength);
-}
+//   mouseDragged();
+// }
+
+// function mouseReleased() {
+//   //When mouse is released
+//   if (pauseStatus == 0) {
+//     loop();
+//   } else {
+//     noLoop();
+//   }
+// }
+
+// function mouseDragged() {
+//   // When mouse is dragged
+//   const x = Math.floor(mouseX / unitLength);
+//   const y = Math.floor(mouseY / unitLength);
+
+//   //If the mouse coordinate is outside the board
+//   if (mouseX > unitLength * columns || mouseY > unitLength * rows) {
+//     return;
+//   }
+//     //即正常拖拉mouse放box
+//     currentBoard[x][y] = 1;
+//     fill(defaultTheme.boxClickColor);
+//     stroke(defaultTheme.strokeColor);
+//     rect(x * unitLength, y * unitLength, unitLength, unitLength);
+// }
 
 function patternToArray(pattern) {
   let lines = pattern.split("\n"); //每行成為一個array element
@@ -358,8 +446,12 @@ function patternToArray(pattern) {
         switch (c) {
           case "-":
             return 0; // white
+          case "#":
+            return 1; // agumon fire
+          case "@":
+            return 2; // gabumon fire
           case "x":
-            return 3; // black
+            return 3; // black for agumon
           case "y":
             return 4; // light yellow
           case "Y":
@@ -380,18 +472,22 @@ function patternToArray(pattern) {
             return 12; // wine red
           case "w":
             return 13; // strong white
+          case "X":
+            return 14; // black for gabumon
           default:
             return alert(`error co-ordinate [${x}][${y}] at ${pattern}`);
         }
       })
   );
+  //   console.log("lines: ", lines);
   return lines;
 }
 
 /**
  * @param {Digimon} digimon includes ---xxx---
- * @param {string} placeMode e.g. placeLeft, placeRight, moveUp, moveDown, moveLeft, moveRight
- * @returns 
+ * @param {string} placeMode e.g. placeLeft, placeRight,
+ *  moveUp, moveDown, moveLeft, moveRight, attackLeft, attackRight
+ * @returns
  */
 function stagePlacePattern(digimon, placeMode) {
   let validPlaceModes = [
@@ -401,6 +497,8 @@ function stagePlacePattern(digimon, placeMode) {
     "moveDown",
     "moveLeft",
     "moveRight",
+    "attackLeft",
+    "attackRight",
   ];
 
   // cancel if invalid place modes
@@ -408,10 +506,23 @@ function stagePlacePattern(digimon, placeMode) {
     return;
   }
 
-  let arrPattern = digimon.patternString;
+  // attack pattern must exist for attack moves
+  if (
+    (placeMode === "attackLeft" || placeMode === "attackRight") &&
+    digimon.attackPattern1String == null
+  ) {
+    return;
+  }
+
+  let pat = patternToArray(digimon.patternString); //把現有pattern圖變成array
+  let attackPattern =
+    placeMode == "attackLeft" || placeMode == "attackRight"
+      ? patternToArray(digimon.attackPattern1String)
+      : [];
 
   let placeLocationWidth = 1; // 闊度除開的分母，越大，pattern放越上方位置
   let placeLocationHeight = 1; // 長度除開的分母，越大，pattern放越左方位置
+  let moveCellDistance = 2; // 移動格數
 
   // e.g. 亞古獸放左
   if (placeMode === "placeLeft") {
@@ -431,50 +542,221 @@ function stagePlacePattern(digimon, placeMode) {
     y = digimon.currentPosition.y;
   }
 
-  console.log('before x: ', x, 'y: ', y)
+  let topLeftCoordinate = { x: x, y: y };
+  let topRightCoordinate = { x: x + pat[0].length, y: y };
+  let bottomLeftCoordinate = { x: x, y: y + pat.length };
+  let bottomRightCoordinate = { x: x + pat[0].length, y: y + pat.length };
 
-    let pat = patternToArray(arrPattern); //把現有pattern圖變成array
+  console.log(
+    "topLeftCoordinate: ",
+    topLeftCoordinate,
+    "topRightCoordinate: ",
+    topRightCoordinate,
+    "bottomLeftCoordinate: ",
+    bottomLeftCoordinate,
+    "bottomRightCoordinate: ",
+    bottomRightCoordinate
+  );
 
-    // 先清走
-    if (placeMode !== "placeLeft" || placeMode !== "placeRight") {
-      for (let patY = 0; patY < pat.length; patY++) {
-        //先走Y軸
-        for (let patX = 0; patX < pat[patY].length; patX++) {
-          //再走X軸
-          currentBoard[(x + patX + columns) % columns][
-            (y + patY + rows) % rows
-          ] = 0; //填入mouse所指向的格
-          noFill(); //填入顏色
-          stroke(150); //填入邊框顏色
-          rect(
-            (x + patY) * unitLength,
-            (y + patX) * unitLength,
-            unitLength,
-            unitLength
-          );
+  if (
+    // 防止digimon走出界
+    (placeMode === "moveUp" &&
+      (topLeftCoordinate.y - moveCellDistance <= 0 ||
+        topRightCoordinate.y - moveCellDistance <= 0)) ||
+    (placeMode === "moveDown" &&
+      (bottomLeftCoordinate.y + moveCellDistance >= rows ||
+        bottomRightCoordinate.y + moveCellDistance >= rows)) ||
+    (placeMode === "moveLeft" &&
+      (topLeftCoordinate.x - moveCellDistance <= 0 ||
+        bottomLeftCoordinate.x - moveCellDistance <= 0)) ||
+    (placeMode === "moveRight" &&
+      (topRightCoordinate.x + moveCellDistance >= columns ||
+        bottomRightCoordinate.x + moveCellDistance >= columns))
+  ) {
+    return;
+  }
+
+  /* 防止digimon相撞 */
+  let colBorBeginCdn = {}; // collisionBorderBeginCoordinate
+  let colBorEndCdn = {}; // collisionBorderEndCoordinate
+  switch (placeMode) {
+    case "moveUp":
+      colBorBeginCdn = topLeftCoordinate;
+      colBorEndCdn = topRightCoordinate;
+      break;
+    case "moveDown":
+      colBorBeginCdn = bottomLeftCoordinate;
+      colBorEndCdn = bottomRightCoordinate;
+      break;
+    case "moveLeft":
+      colBorBeginCdn = topLeftCoordinate;
+      colBorEndCdn = bottomLeftCoordinate;
+      break;
+    case "moveRight":
+      colBorBeginCdn = topRightCoordinate;
+      colBorEndCdn = bottomRightCoordinate;
+      break;
+
+    default:
+      break;
+  }
+
+  //   console.log(
+  //     "colBorBeginCdn: ",
+  //     colBorBeginCdn,
+  //     "colBorEndCdn: ",
+  //     colBorEndCdn
+  //   );
+
+  // run across column (橫向格仔)
+  for (let borderX = colBorBeginCdn.x; borderX <= colBorEndCdn.x; borderX++) {
+    // run across row (直向格仔)
+    for (let borderY = colBorBeginCdn.y; borderY <= colBorEndCdn.y; borderY++) {
+      // 每個格仔左中右
+      for (let i of [-1, 0, 1]) {
+        // 每個格仔上中下
+        for (let j of [-1, 0, 1]) {
+          // 向上移動時檢查上方一格有無火球除外的顏色/生命
+          if (
+            placeMode === "moveUp" &&
+            i === 0 &&
+            j === -1 &&
+            currentBoard[(borderX + i + columns) % columns][
+              (borderY + j + rows) % rows
+            ] > 2
+          ) {
+            return;
+            // 向下移動時檢查下方一格有無火球除外的顏色/生命
+          } else if (
+            placeMode === "moveDown" &&
+            i === 0 &&
+            j === 1 &&
+            currentBoard[(borderX + i + columns) % columns][
+              (borderY + j + rows) % rows
+            ] > 2
+          ) {
+            return;
+            // 向左移動時檢查左方一格有無火球除外的顏色/生命
+          } else if (
+            placeMode === "moveLeft" &&
+            i === -1 &&
+            j === 0 &&
+            currentBoard[(borderX + i + columns) % columns][
+              (borderY + j + rows) % rows
+            ] > 2
+          ) {
+            return;
+            // 向右移動時檢查右方一格有無火球除外的顏色/生命
+          } else if (
+            placeMode === "moveRight" &&
+            i === 1 &&
+            j === 0 &&
+            currentBoard[(borderX + i + columns) % columns][
+              (borderY + j + rows) % rows
+            ] > 2
+          ) {
+            return;
+          }
         }
       }
-      console.log('triggered clean!')
     }
+  }
+  /* 防止digimon相撞 */
+
+  if (placeMode === "attackRight") {
+    let attackPatternTopLeftX = topRightCoordinate.x + 2;
+    let attackPatternTopLeftY =
+      (topRightCoordinate.y + bottomRightCoordinate.y) / 3;
+
+    for (let patY = 0; patY < attackPattern.length; patY++) {
+      //先走Y軸
+      for (let patX = 0; patX < attackPattern[patY].length; patX++) {
+        //再走X軸
+        let placePatternX = Math.floor(
+          (attackPatternTopLeftX + patX + columns) % columns
+        );
+        let placePatternY = Math.floor(
+          (attackPatternTopLeftY + patY + rows) % rows
+        );
+        currentBoard[placePatternX][placePatternY] = attackPattern[patY][patX]; //填入mouse所指向的格
+        fill(digimonPixelColors[attackPattern[patY][patX]]); //填入顏色
+        // stroke(150); //填入邊框顏色
+        // rect(
+        //   (attackPatternTopLeftX + patY) * unitLength,
+        //   (attackPatternTopLeftY + patX) * unitLength,
+        //   unitLength,
+        //   unitLength
+        // );
+      }
+    }
+    return;
+  } else if (placeMode === "attackLeft") {
+    let attackPatternTopRightX = topLeftCoordinate.x - 2;
+    let attackPatternTopRightY =
+      (topLeftCoordinate.y + bottomLeftCoordinate.y) / 3;
+
+    for (let patY = 0; patY < attackPattern.length; patY++) {
+      //先走Y軸
+      for (let patX = 0; patX < attackPattern[patY].length; patX++) {
+        //再走X軸
+        let placePatternX = Math.floor(
+          (attackPatternTopRightX - patX + columns) % columns
+        );
+        let placePatternY = Math.floor(
+          (attackPatternTopRightY + patY + rows) % rows
+        );
+        currentBoard[placePatternX][placePatternY] = attackPattern[patY][patX]; //填入mouse所指向的格
+        fill(digimonPixelColors[attackPattern[patY][patX]]); //填入顏色
+        // stroke(150); //填入邊框顏色
+        // rect(
+        //   (attackPatternTopRightX + patY) * unitLength,
+        //   (attackPatternTopRightY + patX) * unitLength,
+        //   unitLength,
+        //   unitLength
+        // );
+      }
+    }
+
+    return;
+  } else if (placeMode !== "placeLeft" || placeMode !== "placeRight") {
+    // 先清走，下面再系新坐標刷新digimon pattern
+    for (let patY = 0; patY < pat.length; patY++) {
+      //先走Y軸
+      for (let patX = 0; patX < pat[patY].length; patX++) {
+        //再走X軸
+        currentBoard[(x + patX + columns) % columns][
+          (y + patY + rows) % rows
+        ] = 0; //填入mouse所指向的格
+        noFill(); //填入顏色
+        // stroke(150); //填入邊框顏色
+        rect(
+          (x + patY) * unitLength,
+          (y + patX) * unitLength,
+          unitLength,
+          unitLength
+        );
+      }
+    }
+  }
 
   switch (placeMode) {
     case "moveUp":
-      y -= 2;
+      y -= moveCellDistance;
       break;
     case "moveDown":
-      y += 2;
+      y += moveCellDistance;
       break;
     case "moveLeft":
-      x -= 2;
+      x -= moveCellDistance;
       break;
     case "moveRight":
-      x += 2;
+      x += moveCellDistance;
       break;
     default:
       break;
   }
 
-  console.log('digimon: ', digimon, 'placeMode: ', placeMode);
+  //   console.log("digimon: ", digimon, "placeMode: ", placeMode);
 
   for (let patY = 0; patY < pat.length; patY++) {
     //先走Y軸
@@ -482,92 +764,19 @@ function stagePlacePattern(digimon, placeMode) {
       //再走X軸
       currentBoard[(x + patX + columns) % columns][(y + patY + rows) % rows] =
         pat[patY][patX]; //填入mouse所指向的格
-      fill(digimonPixelColors[pat[patY][patX]]); //填入顏色
-      stroke(150); //填入邊框顏色
-      rect(
-        (x + patY) * unitLength,
-        (y + patX) * unitLength,
-        unitLength,
-        unitLength
-      );
+      //   fill(digimonPixelColors[pwdat[patY][patX]]); //填入顏色
+      noStroke(); //填入邊框顏色
+      //   rect(
+      //     (x + patY) * unitLength,
+      //     (y + patX) * unitLength,
+      //     unitLength,
+      //     unitLength
+      //   );
     }
   }
 
   return (digimon.currentPosition = { x: x, y: y });
 }
-
-// function placePattern(arrPattern) {
-//   //放pattern的function
-//   const x = Math.floor(mouseX / unitLength); //全圖的x軸
-//   const y = Math.floor(mouseY / unitLength); //全圖的y軸
-
-//   if (mouseX > unitLength * columns || mouseY > unitLength * rows) {
-//     return;
-//   }
-//   let pat = patternToArray(arrPattern); //把現有pattern圖變成array
-//   for (let patY = 0; patY < pat.length; patY++) {
-//     //先走Y軸
-//     for (let patX = 0; patX < pat[patY].length; patX++) {
-//       //再走Y軸
-//       if (pat[patX][patY] == 1) {
-//         //當有1的值
-//         currentBoard[(x + patX + columns) % columns][
-//           (y + patY + rows) % rows
-//         ] = 1; //填入mouse所指向的格
-//         fill(defaultTheme.boxClickColor); //填入顏色
-//         stroke(defaultTheme.strokeColor); //填入邊框顏色
-//         rect(
-//           (x + patY) * unitLength,
-//           (y + patX) * unitLength,
-//           unitLength,
-//           unitLength
-//         );
-//       } //rect也是必須，注意pattern的X與Y值相反加入
-//     }
-//   }
-//   return;
-// }
-
-
-
-// function codeToLink() {
-//   //input code to jump to next page
-//   let code = "game"; //指定passcode
-//   let input = []; //user input, default empty
-//   let inputTimer; //timer for input
-//   let codeChecker = document.querySelector("#code-checker");
-//   //codeChecker: link to HTML page to show whether if input successful or not
-
-//   document.addEventListener("keydown", (event) => {
-//     input.push(event.key); //push each keyboard key into input array
-//   });
-//   clearTimeout(inputTimer);
-//   codeChecker.innerHTML = "";
-//   inputTimer = setTimeout(function () {
-//     //perform check procedure after 4 secs of codeToLink is running
-//     let joinedInput = input.join("");
-//     if (code == joinedInput) {
-//       console.log(joinedInput); //successful input
-//       codeChecker.innerHTML = `<span class = "text-success">Code correct</span>`;
-//       setTimeout(function () {
-//         //jump to next page in 2 secs
-//         window.location.href = "game-of-catch.html";
-//       }, 2000);
-//     } else if (joinedInput == "") {
-//       //empty input, show on console
-//       console.log("code log empty, try input something");
-//     } else {
-//       //unmatched input
-//       codeChecker.innerHTML = `<span class = "text-danger">Code not match</span>`;
-//     }
-//   }, 4000);
-// }
-
-// codeToLink(); //run once at html onload
-// setInterval(codeToLink, 5000); //run the program again per 5 secs
-
-
-
 
 let agumonPattern = ` 
 -------xxxx-xx--------
@@ -599,87 +808,170 @@ xooxowwxwxwxYYxxwwxwx-
 `;
 
 let gabumonPattern = `
---x------------------------
---xx----xxx----------------
---xyx--xBBxx---------------
----xyx-xbx------xxx--------
----xyyxbx-----xxbBBxx------
-----xyyxxxx--xbbxxxxxx-----
-----xyxBBBBxxbxx-----------
----xbxBbbbbbBx-------------
---xBBBbBxxBBbBx------------
--xxxBbbxwoxbbbBx-----------
-xBBbbbxxRoBBbbBBx----------
-xbbbbbBbbBbbbBBbBx---------
-xbbbbbBBbBBbbbbbBx---------
--xxxxxxwxwxwbbbbBbBx-------
---xyyyxyxyxxbbbbbBx--xxxxx-
----xxyyyyyyxBBbxBbbxxyyyyxx
------xxxxyyyxbbxbbBxyyyyx--
------xBxgttyxbbbxBBbxyyx---
-----xbxxtptxbbBBxbbRxyx----
---xxBxyxptpxbbbbxxRxxyx----
--xbbBxyyxpxBBBbbxyxyxx-----
-xRxbbxyyybwbbbbbxyyyx------
-xxRbxxxxyxRxiiiixyyx-------
--xxxwxwyyxxxRxRxyyyyx------
----xxxxxxxxxxwxwwxwyx------
-------------xxxxxxxx-------
+--X------------------------
+--XX----XXX----------------
+--XyX--XBBXX---------------
+---XyX-XbX------XXX--------
+---XyyXbX-----XXbBBXX------
+----XyyXXXX--XbbXXXXXX-----
+----XyXBBBBXXbXX-----------
+---XbXBbbbbbBX-------------
+--XBBBbBXXBBbBX------------
+-XXXBbbXwoXbbbBX-----------
+XBBbbbXXRoBBbbBBX----------
+XbbbbbBbbBbbbBBbBX---------
+XbbbbbBBbBBbbbbbBX---------
+-XXXXXXwXwXwbbbbBbBX-------
+--XyyyXyXyXXbbbbbBX--XXXXX-
+---XXyyyyyyXBBbXBbbXXyyyyXX
+-----XXXXyyyXbbXbbBXyyyyX--
+-----XBXgttyXbbbXBBbXyyX---
+----XbXXtptXbbBBXbbRXyX----
+--XXBXyXptpXbbbbXXRXXyX----
+-XbbBXyyXpXBBBbbXyXyXX-----
+XRXbbXyyybwbbbbbXyyyX------
+XXRbXXXXyXRXbbbbXyyX-------
+-XXXwXwyyXXXRXRXyyyyX------
+---XXXXXXXXXXwXwwXwyX------
+------------XXXXXXXX-------
 `;
 
+let attackPattern1 = `
+-#-------
+#-#------
+#--#-----
+--#------
+####-----
+-#-##-#--
+###----##
+-------##
+###----##
+-#-##-#--
+####-----
+--#------
+#--#-----
+#-#------
+-#-------
+`;
 
 class Digimon {
-    hp;
-    atk;
-    def;
-    name;
-    evolutionState; // optional, 成長期 Rookie, 成熟期 champion, 完全體 Ultimate, 究極體 Mega
-    patternString;
-    currentPosition; // e.g. {x: 20, y: 40}
+  hp;
+  atk;
+  def;
+  name;
+  evolutionState; // optional, 成長期 Rookie, 成熟期 champion, 完全體 Ultimate, 究極體 Mega
+  patternString;
+  attackPattern1String;
+  currentPosition; // e.g. {x: 20, y: 40}
 
-    constructor(hp, atk, def, name, evolutionState, patternString, currentPosition) {
-        this.hp = hp;
-        this.atk = atk;
-        this.def = def;
-        this.name = name;
-        this.evolutionState = evolutionState;
-        this.patternString = patternString;
-        this.currentPosition = currentPosition;
+  constructor(
+    hp,
+    atk,
+    def,
+    name,
+    evolutionState,
+    patternString,
+    attackPattern1String,
+    currentPosition
+  ) {
+    this.hp = hp;
+    this.atk = atk;
+    this.def = def;
+    this.name = name;
+    this.evolutionState = evolutionState;
+    this.patternString = patternString;
+    this.attackPattern1String = attackPattern1String;
+    this.currentPosition = currentPosition;
+  }
+
+  // 誕生
+  spawn() {
+    if (this.name === "agumon") {
+      stagePlacePattern(this, "placeLeft");
+    } else if (this.name === "gabumon") {
+      stagePlacePattern(this, "placeRight");
     }
 
-    spawn(){
-        stagePlacePattern(this, "placeLeft");
-    }
+    this.move();
+    this.attack();
+  }
 
-    move(){
-        if(this.name === 'agumon'){
-        document.addEventListener("keydown", (event) => {
-          switch (event.key) {
-            case "w":
-              // up
-              stagePlacePattern(this, "moveUp");
-              break;
-            case "s":
-              // down
-              stagePlacePattern(this, "moveDown");
-              break;
-            case "a":
-              // left
-              stagePlacePattern(this, "moveLeft");
-              break;
-            case "d":
-              // right
-              stagePlacePattern(this, "moveRight");
-              break;
-            default:
-              break;
-          }
-        });
-        }else if(this.name === 'gabumon'){
-
+  move() {
+    if (this.name === "agumon") {
+      document.addEventListener("keydown", (event) => {
+        switch (event.key) {
+          case "w":
+            // up
+            stagePlacePattern(this, "moveUp");
+            break;
+          case "s":
+            // down
+            stagePlacePattern(this, "moveDown");
+            break;
+          case "a":
+            // left
+            stagePlacePattern(this, "moveLeft");
+            break;
+          case "d":
+            // right
+            stagePlacePattern(this, "moveRight");
+            break;
+          default:
+            break;
         }
-
+      });
+    } else if (this.name === "gabumon") {
+      document.addEventListener("keydown", (event) => {
+        switch (event.key) {
+          case "ArrowUp":
+            // up
+            stagePlacePattern(this, "moveUp");
+            break;
+          case "ArrowDown":
+            // down
+            stagePlacePattern(this, "moveDown");
+            break;
+          case "ArrowLeft":
+            // left
+            stagePlacePattern(this, "moveLeft");
+            break;
+          case "ArrowRight":
+            // right
+            stagePlacePattern(this, "moveRight");
+            break;
+          default:
+            break;
+        }
+      });
     }
+  }
 
+  attack() {
+    if (this.name === "agumon") {
+      document.addEventListener("keydown", (event) => {
+        switch (event.key) {
+          case "f":
+            stagePlacePattern(this, "attackRight");
+            break;
+        }
+      });
+    } else if (this.name === "gabumon") {
+      document.addEventListener("keydown", (event) => {
+        switch (event.key) {
+          case "/":
+            stagePlacePattern(this, "attackLeft");
+            break;
+        }
+      });
+    }
+  }
 
+  // 計算扣血
+  calculateInjure() {
+    if (this.name === "agumon" && agumonNeighbors > 0) {
+      this.hp -= 1;
+    } else if (this.name === "gabumon" && gabumonNeighbors > 0) {
+      this.hp -= 1;
+    }
+  }
 }
